@@ -12,6 +12,7 @@ except IndexError:
 min_data_size = 8
 max_inflated_size = 104857601
 inflated_files = os.path.join(os.path.dirname(__file__), 'inflated_files')
+topmost_parent = None
 
 # set to True if you want verbose output of what's going on.
 verbose = False
@@ -67,7 +68,10 @@ def process_amta(file_path, filedata, data_size):
     verbose_log("[ + ] Inflated size: %d (bytes)" % inflated_size)
 
     decompressed = inflate_amta(file_path, bytearray(filedata), data_size, inflated_size)
-    output_file = os.path.join(inflated_files, os.path.basename(file_path))
+    output_file = os.path.join(inflated_files, file_path.replace(topmost_parent, ''))
+
+    if not os.path.exists(os.path.dirname(output_file)):
+        os.makedirs(os.path.dirname(output_file), mode = 0o755)
 
     with open(output_file, 'wb') as output:
         verbose_log("[ + ] Writing decompressed data to '%s'..." % output_file)
@@ -94,6 +98,8 @@ def process_file_list(file_list):
         process_amta(fpath, filedata, data_size)
 
 def main():
+    global topmost_parent
+
     if not os.path.exists(fs_input):
         print("[ - ] Unable to read '%s'." % fs_input, file = sys.stderr)
 
@@ -105,6 +111,9 @@ def main():
     files = []
 
     for pd, _, fn in os.walk(fs_input):
+        if topmost_parent is None:
+            topmost_parent = pd
+
         files.append([pd, fn])
 
     if len(files) == 0:
