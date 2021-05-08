@@ -38,12 +38,6 @@ def inflate_amta(file_path, filedata, data_size, inflated_size):
         py_off -= 1
 
     filedata[:1] = struct.pack('<B', unk_byte)
-    output_file = os.path.join(inflated_files, os.path.basename(file_path)) + '.lzo'
-
-    with open(output_file, 'wb') as lzo_output:
-        verbose_log("[ + ] Writing decompressed lzo file to '%s'..." % output_file)
-
-        lzo_output.write(filedata)
 
     return lzo.decompress(bytes(filedata), False, inflated_size)
 
